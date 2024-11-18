@@ -5,7 +5,7 @@ const options = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'Real Estate Platform API',
+            title: 'Real Estate Platform Agent API',
             version: '1.0.0',
             description: 'API documentation for the Real Estate Platform',
         },

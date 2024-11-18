@@ -1,119 +1,73 @@
+// routes/agentRoutes.js
 const express = require('express');
 const router = express.Router();
-const agentController = require('../controllers/agentController');
-const { body, validationResult } = require('express-validator'); // Import validation tools
-
-// Validation middleware for creating or updating agent
-const agentValidation = [
-  body('firstName').isString().notEmpty().withMessage('First name is required'),
-  body('lastName').isString().notEmpty().withMessage('Last name is required'),
-  body('email').isEmail().withMessage('Valid email is required'),
-  body('phoneNumber').isString().notEmpty().withMessage('Phone number is required'),
-  body('licenseNumber').isString().notEmpty().withMessage('License number is required'),
-  body('commissionRate').isFloat({ gt: 0 }).withMessage('Commission rate must be a positive number'),
-  body('profilePicture').optional().isString().withMessage('Profile picture URL must be a string if provided'),
-  (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    next();
-  }
-];
-
+const { getAllAgents, getAgentById, updateAgent, deleteAgent } = require('../controllers/agentController');
+const authMiddleware = require('../middleware/authMiddleware');
 /**
  * @swagger
- * /api/agents:
- *   post:
- *     summary: Create a new agent
- *     description: This route allows you to create a new real estate agent.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               firstName:
- *                 type: string
- *               lastName:
- *                 type: string
- *               email:
- *                 type: string
- *               phoneNumber:
- *                 type: string
- *               licenseNumber:
- *                 type: string
- *               commissionRate:
- *                 type: number
- *               profilePicture:
- *                 type: string
- *     responses:
- *       201:
- *         description: Successfully created an agent
- *       400:
- *         description: Bad request, validation failed
+ * tags:
+ *   name: Agent
+ *   description: Agent endpoints
  */
-router.post('/', agentValidation, agentController.createAgent);
 
 /**
  * @swagger
- * /api/agents:
+ * /agents:
  *   get:
  *     summary: Get all agents
- *     description: This route retrieves a list of all real estate agents.
+ *     tags: [Agent]
+ *     description: Fetch all the agents registered in the system.
+ *     operationId: getAllAgents
+ *     security:
+ *       - BearerAuth: []
  *     responses:
  *       200:
  *         description: A list of agents
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Agent'
+ *       401:
+ *         description: Unauthorized
  *       500:
  *         description: Internal server error
  */
-router.get('/', agentController.getAgents);
+router.get('/', authMiddleware, getAllAgents);
 
 /**
  * @swagger
- * /api/agents/{id}:
+ * /agents/{id}:
  *   get:
- *     summary: Get an agent by ID
- *     description: This route retrieves a specific agent by their ID.
+ *     summary: Get agent by ID
+ *     tags: [Agent]
+ *     description: Fetch details of a single agent by their ID.
+ *     operationId: getAgentById
  *     parameters:
- *       - in: path
- *         name: id
+ *       - name: id
+ *         in: path
  *         required: true
- *         description: The ID of the agent to retrieve
+ *         description: ID of the agent to fetch
  *         schema:
  *           type: string
  *     responses:
  *       200:
- *         description: The agent with the specified ID
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Agent'
+ *         description: Agent found
  *       404:
  *         description: Agent not found
  *       500:
  *         description: Internal server error
  */
-router.get('/:id', agentController.getAgentById);
+router.get('/:id', authMiddleware, getAgentById);
 
 /**
  * @swagger
- * /api/agents/{id}:
+ * /agents/{id}:
  *   put:
- *     summary: Update an agent's details
- *     description: This route allows you to update the details of an existing agent.
+ *     summary: Update agent details
+ *     tags: [Agent]
+ *     description: Update the details of an agent by ID.
+ *     operationId: updateAgent
  *     parameters:
- *       - in: path
- *         name: id
+ *       - name: id
+ *         in: path
  *         required: true
- *         description: The ID of the agent to update
+ *         description: ID of the agent to update
  *         schema:
  *           type: string
  *     requestBody:
@@ -131,45 +85,41 @@ router.get('/:id', agentController.getAgentById);
  *                 type: string
  *               phoneNumber:
  *                 type: string
- *               licenseNumber:
- *                 type: string
  *               commissionRate:
  *                 type: number
- *               profilePicture:
- *                 type: string
  *     responses:
  *       200:
- *         description: Successfully updated the agent
- *       400:
- *         description: Bad request, invalid data
+ *         description: Agent updated
  *       404:
  *         description: Agent not found
  *       500:
  *         description: Internal server error
  */
-router.put('/:id', agentValidation, agentController.updateAgent);
+router.put('/:id', authMiddleware, updateAgent);
 
 /**
  * @swagger
- * /api/agents/{id}:
+ * /agents/{id}:
  *   delete:
- *     summary: Delete an agent
- *     description: This route allows you to delete an agent by their ID.
+ *     summary: Delete agent
+ *     tags: [Agent]
+ *     description: Delete an agent by their ID.
+ *     operationId: deleteAgent
  *     parameters:
- *       - in: path
- *         name: id
+ *       - name: id
+ *         in: path
  *         required: true
- *         description: The ID of the agent to delete
+ *         description: ID of the agent to delete
  *         schema:
  *           type: string
  *     responses:
  *       200:
- *         description: Successfully deleted the agent
+ *         description: Agent deleted successfully
  *       404:
  *         description: Agent not found
  *       500:
  *         description: Internal server error
  */
-router.delete('/:id', agentController.deleteAgent);
+router.delete('/:id', authMiddleware, deleteAgent);
 
 module.exports = router;
