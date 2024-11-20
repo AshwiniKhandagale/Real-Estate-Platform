@@ -2,8 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const agentRoutes = require('./routes/agentRoutes'); // Import agent routes
-const authRoutes = require('./routes/authRoutes'); // Import authentication routes
-const syncRoutes = require('./routes/syncRoutes'); // Import sync routes
+
 require('dotenv').config();
 const { swaggerUi, specs } = require('./swagger');
 const app = express();
@@ -18,9 +17,7 @@ mongoose.connect(process.env.DB_URI, { useNewUrlParser: true, useUnifiedTopology
   .catch(err => console.log('Error connecting to MongoDB:', err));
 
 // Routes
-app.use('/auth', authRoutes);  // Authentication routes (login/register)
-app.use('/agents', agentRoutes);  // Agent management routes
-app.use('/sync', syncRoutes);  // Sync data route
+app.use('/api', agentRoutes);
 
 // Swagger API Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {

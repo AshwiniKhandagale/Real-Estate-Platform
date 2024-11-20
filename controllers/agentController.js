@@ -1,5 +1,35 @@
-// controllers/agentController.js
 const Agent = require('../models/agentSchema');
+const axios = require('axios');
+const { USER_SERVICE_URL } = process.env;
+
+// Register a new agent
+const registerAgent = async (req, res) => {
+  const { firstName, lastName, email, phoneNumber, licenseNumber, commissionRate, profilePicture } = req.body;
+  
+  try {
+    // Create new agent
+    const newAgent = new Agent({
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      licenseNumber,
+      commissionRate,
+      profilePicture,
+      userId: req.user.userId // Link to logged-in user
+    });
+
+    // Save agent to the database
+    await newAgent.save();
+
+    res.status(201).json({
+      message: 'Agent registered successfully',
+      agent: newAgent
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error registering agent', error: error.message });
+  }
+};
 
 // Get all agents
 const getAllAgents = async (req, res) => {
@@ -11,12 +41,11 @@ const getAllAgents = async (req, res) => {
   }
 };
 
-// Get an agent by ID
+// Get agent by ID
 const getAgentById = async (req, res) => {
-  const { id } = req.params;
-
+  const agentId = req.params.id;
   try {
-    const agent = await Agent.findById(id);
+    const agent = await Agent.findById(agentId);
     if (!agent) {
       return res.status(404).json({ message: 'Agent not found' });
     }
@@ -28,15 +57,23 @@ const getAgentById = async (req, res) => {
 
 // Update agent details
 const updateAgent = async (req, res) => {
-  const { id } = req.params;
-  const updates = req.body;
+  const agentId = req.params.id;
+  const updatedData = req.body;
 
   try {
-    const agent = await Agent.findByIdAndUpdate(id, updates, { new: true });
+    const agent = await Agent.findById(agentId);
     if (!agent) {
       return res.status(404).json({ message: 'Agent not found' });
     }
-    res.status(200).json(agent);
+
+    // Update agent with provided data
+    Object.assign(agent, updatedData);
+
+    await agent.save();
+    res.status(200).json({
+      message: 'Agent updated successfully',
+      agent
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error updating agent', error: error.message });
   }
@@ -44,10 +81,10 @@ const updateAgent = async (req, res) => {
 
 // Delete agent
 const deleteAgent = async (req, res) => {
-  const { id } = req.params;
-
+  const agentId = req.params.id;
+  
   try {
-    const agent = await Agent.findByIdAndDelete(id);
+    const agent = await Agent.findByIdAndDelete(agentId);
     if (!agent) {
       return res.status(404).json({ message: 'Agent not found' });
     }
@@ -57,4 +94,10 @@ const deleteAgent = async (req, res) => {
   }
 };
 
-module.exports = { getAllAgents, getAgentById, updateAgent, deleteAgent };
+module.exports = {
+  registerAgent,
+  getAllAgents,
+  getAgentById,
+  updateAgent,
+  deleteAgent
+};
