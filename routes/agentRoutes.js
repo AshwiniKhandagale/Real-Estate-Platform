@@ -4,7 +4,7 @@ const { registerAgent, getAllAgents, getAgentById, updateAgent, deleteAgent } = 
 const verifyToken = require('../middleware/authMiddleware');
 
 // Register a new agent
-router.post('/register', verifyToken, registerAgent);
+router.post('/agents/register', verifyToken, registerAgent);
 
 // Get all agents
 router.get('/agents', verifyToken, getAllAgents);
